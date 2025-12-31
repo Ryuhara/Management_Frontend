@@ -11,16 +11,16 @@ export default async function handler(
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { codeId } = req.query;
+  const { query } = req.query;
 
-  if (!codeId || typeof codeId !== 'string') {
-    return res.status(400).json({ error: 'Code ID is required' });
+  if (!query || typeof query !== 'string') {
+    return res.status(400).json({ error: 'Query Input is required' });
   }
 
   try {
     // バックエンドAPIにリクエストを転送
     const response = await fetch(
-      `${BACKEND_API_URL}/api/solution_service/${encodeURIComponent(codeId)}`,
+      `${BACKEND_API_URL}/api/solution_service/${encodeURIComponent(query)}`,
       {
         method: 'GET',
         headers: {
@@ -40,7 +40,7 @@ export default async function handler(
         errorData = { error: `HTTP error! status: ${response.status}` };
       }
       return res.status(response.status).json({
-        error: errorData.error || `HTTP error! status: ${response.status}`,
+        error: errorData.error || `HTTP error status: ${response.status}`,
       });
     }
 

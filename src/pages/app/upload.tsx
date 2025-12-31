@@ -2,6 +2,8 @@
 
 import { useState, ChangeEvent } from 'react';
 import { uploadDocument, UploadResponse, UploadErrorResponse } from '../lib/api/backend-apis';
+import Button from '../../components/Button';
+import Card from '../../components/Card';
 
 export default function UploadPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -68,49 +70,26 @@ export default function UploadPage() {
         )}
       </div>
 
-      <button
+      <Button
         onClick={handleUpload}
         disabled={loading || !selectedFile}
-        style={{
-          padding: '10px 20px',
-          backgroundColor: loading || !selectedFile ? '#ccc' : '#0070f3',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          fontSize: '16px',
-          cursor: loading || !selectedFile ? 'not-allowed' : 'pointer'
-        }}
+        variant="primary"
       >
         {loading ? 'Uploading...' : 'Upload'}
-      </button>
+      </Button>
 
       {error && (
-        <div style={{
-          marginTop: '20px',
-          padding: '12px',
-          backgroundColor: '#fee',
-          border: '1px solid #fcc',
-          borderRadius: '4px',
-          color: '#c00'
-        }}>
-          <strong>Error:</strong> {error}
-        </div>
+        <Card variant="error" title="Error" style={{ marginTop: '20px' }}>
+          <p>{error}</p>
+        </Card>
       )}
 
       {uploadResult && (
-        <div style={{
-          marginTop: '20px',
-          padding: '16px',
-          backgroundColor: '#efe',
-          border: '1px solid #cfc',
-          borderRadius: '4px',
-          color: '#060'
-        }}>
-          <h2>Upload Successful</h2>
+        <Card variant="success" title="Upload Successful" style={{ marginTop: '20px' }}>
           <p><strong>Message:</strong> {uploadResult.message}</p>
           <p><strong>Filename:</strong> {uploadResult.filename}</p>
           <p><strong>Blob Name:</strong> {uploadResult.blob_name}</p>
-        </div>
+        </Card>
       )}
     </div>
   );

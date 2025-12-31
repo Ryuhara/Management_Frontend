@@ -2,16 +2,18 @@
 
 import { useState } from 'react';
 import { getSolution, SolutionResponse } from '../lib/api/backend-apis';
+import Button from '../../components/Button';
+import Card from '../../components/Card';
 
 export default function SolutionPage() {
-  const [codeId, setCodeId] = useState('');
+  const [query, setQuery] = useState('');
   const [solution, setSolution] = useState<SolutionResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleGetSolution = async () => {
-    if (!codeId.trim()) {
-      setError('Please enter a Code ID');
+    if (!query.trim()) {
+      setError('Please enter Query Input');
       return;
     }
 
@@ -20,7 +22,7 @@ export default function SolutionPage() {
     setSolution(null);
 
     try {
-      const result = await getSolution(codeId);
+      const result = await getSolution(query);
       setSolution(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch solution');
@@ -31,17 +33,17 @@ export default function SolutionPage() {
 
   return (
     <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-      <h1>Search Solution</h1>
+      <h1>Solution Generator</h1>
 
       <div style={{ marginBottom: '20px' }}>
         <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
-          Code ID:
+          Search Solution:
         </label>
         <input
           type="text"
-          value={codeId}
-          onChange={(e) => setCodeId(e.target.value)}
-          placeholder="Code IDを入力"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Please enter text for solution generation"
           style={{
             width: '100%',
             padding: '8px 12px',
@@ -57,55 +59,34 @@ export default function SolutionPage() {
         />
       </div>
 
-      <button
+      <Button
         onClick={handleGetSolution}
         disabled={loading}
-        style={{
-          padding: '10px 20px',
-          backgroundColor: loading ? '#ccc' : '#0070f3',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          fontSize: '16px',
-          cursor: loading ? 'not-allowed' : 'pointer'
-        }}
+        variant="primary"
       >
         {loading ? 'Loading...' : 'Get Solution'}
-      </button>
+      </Button>
 
       {error && (
-        <div style={{
-          marginTop: '20px',
-          padding: '12px',
-          backgroundColor: '#fee',
-          border: '1px solid #fcc',
-          borderRadius: '4px',
-          color: '#c00'
-        }}>
-          <strong>Error:</strong> {error}
-        </div>
+        <Card variant="error" title="Error" style={{ marginTop: '20px' }}>
+          <p>{error}</p>
+        </Card>
       )}
 
       {solution && (
-        <div style={{
-          marginTop: '20px',
-          padding: '16px',
-          backgroundColor: '#f9f9f9',
-          border: '1px solid #ddd',
-          borderRadius: '4px'
-        }}>
-          <h2>Solution Result</h2>
+        <Card variant="default" title="Result Solution" style={{ marginTop: '20px' }}>
           <pre style={{
-            backgroundColor: '#fff',
+            backgroundColor: '#f5f5f5',
             padding: '12px',
             borderRadius: '4px',
             overflow: 'auto',
             whiteSpace: 'pre-wrap',
-            wordWrap: 'break-word'
+            wordWrap: 'break-word',
+            margin: 0
           }}>
             {JSON.stringify(solution, null, 2)}
           </pre>
-        </div>
+        </Card>
       )}
     </div>
   );

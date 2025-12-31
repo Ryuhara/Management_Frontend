@@ -10,6 +10,8 @@ import {
   ProcessBatchResponse,
   EmbeddingErrorResponse,
 } from '../lib/api/backend-apis';
+import Button from '../../components/Button';
+import Card from '../../components/Card';
 
 export default function EmbeddingPage() {
   const [blobs, setBlobs] = useState<string[]>([]);
@@ -167,20 +169,13 @@ export default function EmbeddingPage() {
                 maxWidth: '300px'
               }}
             />
-            <button
+            <Button
               onClick={loadBlobs}
               disabled={loading}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: loading ? '#ccc' : '#0070f3',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: loading ? 'not-allowed' : 'pointer'
-              }}
+              variant="primary"
             >
               {loading ? 'Loading...' : 'Refresh Blobs'}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -190,35 +185,24 @@ export default function EmbeddingPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
           <h2 style={{ margin: 0 }}>Available Documents ({blobs.length})</h2>
           <div style={{ display: 'flex', gap: '10px' }}>
-            <button
+            <Button
               onClick={handleSelectAll}
               disabled={blobs.length === 0}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: blobs.length === 0 ? '#ccc' : '#666',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: blobs.length === 0 ? 'not-allowed' : 'pointer'
-              }}
+              variant="secondary"
             >
               {selectedBlobs.length === blobs.length ? 'Deselect All' : 'Select All'}
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={handleProcessBatch}
               disabled={processing || selectedBlobs.length === 0}
+              variant="primary"
               style={{
-                padding: '8px 16px',
                 backgroundColor: processing || selectedBlobs.length === 0 ? '#ccc' : '#28a745',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: processing || selectedBlobs.length === 0 ? 'not-allowed' : 'pointer',
                 fontWeight: 'bold'
               }}
             >
               {processing ? 'Processing...' : `Process Selected (${selectedBlobs.length})`}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -264,22 +248,17 @@ export default function EmbeddingPage() {
                   />
                   <span style={{ wordBreak: 'break-all' }}>{blob}</span>
                 </div>
-                <button
+                <Button
                   onClick={() => handleProcessSingle(blob)}
                   disabled={processing}
+                  variant="primary"
                   style={{
-                    padding: '6px 12px',
-                    backgroundColor: processing ? '#ccc' : '#0070f3',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
                     fontSize: '14px',
-                    cursor: processing ? 'not-allowed' : 'pointer',
                     whiteSpace: 'nowrap'
                   }}
                 >
                   Process
-                </button>
+                </Button>
               </div>
             ))}
           </div>
@@ -288,30 +267,14 @@ export default function EmbeddingPage() {
 
       {/* Error Display */}
       {error && (
-        <div style={{
-          marginBottom: '20px',
-          padding: '15px',
-          backgroundColor: '#fee',
-          border: '1px solid #fcc',
-          borderRadius: '8px',
-          color: '#c00'
-        }}>
-          <strong>Error:</strong> {error}
-        </div>
+        <Card variant="error" title="Error" style={{ marginBottom: '20px' }}>
+          <p>{error}</p>
+        </Card>
       )}
 
       {/* Result Display */}
       {result && (
-        <div style={{
-          marginBottom: '20px',
-          padding: '20px',
-          backgroundColor: '#efe',
-          border: '1px solid #cfc',
-          borderRadius: '8px',
-          color: '#060'
-        }}>
-          <h2 style={{ marginTop: 0 }}>Processing Result</h2>
-
+        <Card variant="success" title="Processing Result" style={{ marginBottom: '20px' }}>
           {('result' in result && result.result) ? (
             // Single document result
             <div>
@@ -330,7 +293,7 @@ export default function EmbeddingPage() {
               <div style={{
                 maxHeight: '300px',
                 overflowY: 'auto',
-                border: '1px solid #cfc',
+                border: '1px solid #ddd',
                 borderRadius: '4px',
                 backgroundColor: 'white',
                 padding: '10px'
@@ -361,7 +324,7 @@ export default function EmbeddingPage() {
             <div>
               <p><strong>Status:</strong> {result.status || 'Unknown'}</p>
               <pre style={{
-                backgroundColor: 'white',
+                backgroundColor: '#f5f5f5',
                 padding: '10px',
                 borderRadius: '4px',
                 overflow: 'auto',
@@ -372,7 +335,7 @@ export default function EmbeddingPage() {
               </pre>
             </div>
           )}
-        </div>
+        </Card>
       )}
     </div>
   );

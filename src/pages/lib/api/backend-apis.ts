@@ -23,17 +23,15 @@ export interface UploadErrorResponse {
 /**
  * Solution Service API - code_idに基づいてソリューションを取得
  * Next.js API Routesを経由してバックエンドにアクセス
- * @param codeId - 取得するソリューションのコードID
+ * @param query - 取得するソリューションのコードID
  * @returns ソリューションデータ
  */
-export async function getSolution(codeId: string): Promise<SolutionResponse> {
+export async function getSolution(query: string): Promise<SolutionResponse> {
   try {
     // Next.js API Routeを経由 (CORS問題を回避)
-    const response = await fetch(`/api/solution/${encodeURIComponent(codeId)}`, {
+    // codeIdをqueryパラメータとして送信
+    const response = await fetch(`/api/solution_service/query?query=${encodeURIComponent(query)}`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
     });
 
     if (!response.ok) {
