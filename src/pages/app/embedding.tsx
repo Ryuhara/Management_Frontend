@@ -5,10 +5,12 @@ import {
   listBlobs,
   processDocument,
   processBatchDocuments,
+  testBackendConnection,
   ListBlobsResponse,
   ProcessDocumentResponse,
   ProcessBatchResponse,
   EmbeddingErrorResponse,
+  ConnectionTestResponse,
 } from '../lib/api/backend-apis';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
@@ -23,6 +25,8 @@ export default function EmbeddingPage() {
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ProcessDocumentResponse | ProcessBatchResponse | null>(null);
+  const [connectionTest, setConnectionTest] = useState<ConnectionTestResponse | null>(null);
+  const [testingConnection, setTestingConnection] = useState(false);
 
   const loadBlobs = async () => {
     setLoading(true);
@@ -30,14 +34,40 @@ export default function EmbeddingPage() {
     try {
       const response = await listBlobs(prefix || undefined);
       if ('error' in response) {
-        setError((response as EmbeddingErrorResponse).error);
+        const errorMsg = (response as EmbeddingErrorResponse).error;
+        setError(`Failed to load documents: ${errorMsg}`);
       } else {
         setBlobs((response as ListBlobsResponse).blobs);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load blobs');
+      const errorMsg = err instanceof Error ? err.message : 'Failed to load blobs';
+      setError(`Error loading documents: ${errorMsg}. Please check backend connection.`);
+      console.error('Detailed error:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleTestConnection = async () => {
+    setTestingConnection(true);
+    setConnectionTest(null);
+    setError(null);
+    try {
+      const result = await testBackendConnection();
+      setConnectionTest(result);
+      if (!result.success) {
+        setError(result.message);
+      }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Connection test failed';
+      setError(`Connection test error: ${errorMsg}`);
+      setConnectionTest({
+        success: false,
+        baseUrl: process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://localhost:5000',
+        message: errorMsg,
+      });
+    } finally {
+      setTestingConnection(false);
     }
   };
 
@@ -66,7 +96,7 @@ export default function EmbeddingPage() {
     setError(null);
     setResult(null);
     try {
-      const response = await processDocument(blobName, modelId, embeddingModel);
+      const response = await processDocument(blobName);
       if ('error' in response) {
         setError((response as EmbeddingErrorResponse).error);
       } else {
@@ -89,7 +119,7 @@ export default function EmbeddingPage() {
     setError(null);
     setResult(null);
     try {
-      const response = await processBatchDocuments(selectedBlobs, modelId, embeddingModel);
+      const response = await processBatchDocuments(selectedBlobs);
       if ('error' in response) {
         setError((response as EmbeddingErrorResponse).error);
       } else {
@@ -105,6 +135,60 @@ export default function EmbeddingPage() {
   return (
     <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
       <h1>Document Embedding Processing</h1>
+
+      {/* Connection Test Section */}
+      <div style={{
+        marginBottom: '20px',
+        padding: '15px',
+        backgroundColor: '#fff3cd',
+        borderRadius: '8px',
+        border: '1px solid #ffc107'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <strong>Backend API Status</strong>
+            {connectionTest && (
+              <span style={{
+                marginLeft: '10px',
+                padding: '4px 8px',
+                borderRadius: '4px',
+                fontSize: '12px',
+                backgroundColor: connectionTest.success ? '#d4edda' : '#f8d7da',
+                color: connectionTest.success ? '#155724' : '#721c24',
+              }}>
+                {connectionTest.success ? '✓ Connected' : '✗ Disconnected'}
+              </span>
+            )}
+          </div>
+          <Button
+            onClick={handleTestConnection}
+            disabled={testingConnection}
+            variant="secondary"
+          >
+            {testingConnection ? 'Testing...' : 'Test Connection'}
+          </Button>
+        </div>
+
+        {connectionTest && (
+          <div style={{ marginTop: '10px', fontSize: '13px' }}>
+            <p style={{ margin: '5px 0' }}>
+              <strong>Base URL:</strong> {connectionTest.baseUrl}
+            </p>
+            {connectionTest.endpoints && Object.keys(connectionTest.endpoints).length > 0 && (
+              <div style={{ marginTop: '8px' }}>
+                <strong>Endpoints:</strong>
+                <ul style={{ margin: '5px 0', paddingLeft: '20px' }}>
+                  {Object.entries(connectionTest.endpoints).map(([name, endpoint]) => (
+                    <li key={name} style={{ color: endpoint.ok ? '#155724' : '#721c24' }}>
+                      {name}: {endpoint.ok ? `✓ OK (${endpoint.status})` : `✗ Failed ${endpoint.error ? `(${endpoint.error})` : `(Status: ${endpoint.status})`}`}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Configuration Section */}
       <div style={{
